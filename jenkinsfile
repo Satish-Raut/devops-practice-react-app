@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'devenvsatish/k8s-react-app'
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials' // Jenkins credentials ID
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                // If running Jenkins on Windows, change 'sh' to 'bat'
+                bat "docker build -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ."
+                bat "docker tag ${DOCKER_IMAGE}:${env.BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                // Securely logs in and pushes to Docker Hub
+                withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat "docker login -u ${USER} -p ${PASS}"
+                    bat "docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                    bat "docker push ${DOCKER_IMAGE}:latest"
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Updates the container image in the K8s deployment
+                bat "kubectl set image deployment/react-app-deployment react-app-container=${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+            }
+        }
+    }
+}

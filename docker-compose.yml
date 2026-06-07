@@ -1,0 +1,13 @@
+
+version: '3.8'
+
+services:
+  react-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: devops-practice-react
+    container_name: react_practice_app
+    ports:
+      - "8085:80"
+    restart: "always"
