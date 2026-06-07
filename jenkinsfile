@@ -4,7 +4,9 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'devenvsatish/k8s-react-app'
         REGISTRY_CREDENTIALS = 'dockerhub-credentials' // Jenkins credentials ID
+        KUBECONFIG = 'C:/Users/satis/.kube/config'      // Pointer to your K8s config
     }
+
 
     stages {
         stage('Checkout') {
